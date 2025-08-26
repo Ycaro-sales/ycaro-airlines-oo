@@ -42,6 +42,10 @@ class Seat:
         self.booking: booking_id | None = booking
         self.id: int = id
 
+class Route:
+
+
+
 
 class FlightQueryParams(TypedDict):
     date_arrival_gte: NotRequired[datetime]
@@ -254,6 +258,22 @@ def filter_by_city(
 
     if To is not None:
         filtered_list = [x for x in filtered_list if x.To == To]
+
+    return filtered_list
+
+
+def filter_interval[T, E](
+    list: list[T],
+    field: str,
+    lte: Optional[E] = None,
+    gte: Optional[E] = None,
+):
+    filtered_list = list
+    if lte:
+        filtered_list = [i for i in filtered_list if getattr(i, field) <= lte]
+
+    if gte:
+        filtered_list = [i for i in filtered_list if getattr(i, field) >= gte]
 
     return filtered_list
 

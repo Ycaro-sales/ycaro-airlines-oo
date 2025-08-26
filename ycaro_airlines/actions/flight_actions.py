@@ -1,9 +1,9 @@
 import re
 import questionary
-from ycaro_airlines.models import Flight, FlightQueryParams, cities
+from ycaro_airlines_v2.models import Flight, FlightQueryParams, cities
 from math import inf
 from datetime import datetime
-from ycaro_airlines.menus.base_menu import console
+from ycaro_airlines_v2.menus.base_menu import console
 
 
 def str_can_be_float(string: str) -> bool:

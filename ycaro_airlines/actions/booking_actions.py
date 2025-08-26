@@ -1,11 +1,11 @@
 import re
 import questionary
-from ycaro_airlines.models import Flight, Booking, Customer
-from ycaro_airlines.menus import console
+from ycaro_airlines_v2.models import Flight, Booking, Customer
+from ycaro_airlines_v2.menus import console
 from rich.table import Table
 from rich.console import Console
 
-from ycaro_airlines.models.flight import SeatStatus
+from ycaro_airlines_v2.models.flight import SeatStatus
 
 
 def book_flight_action(user: Customer):

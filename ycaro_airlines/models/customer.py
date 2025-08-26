@@ -1,5 +1,5 @@
 from itertools import count
-from typing import Self
+from typing import Self, TypedDict
 from ycaro_airlines.models.booking import Booking
 
 
@@ -36,3 +36,15 @@ class Customer:
 
     def spend_loyalty_points(self, amount: int):
         self.loyalty_points -= amount
+
+
+class Customers:
+    Customers: list[Customer] = []
+
+    @classmethod
+    def get_customer(cls, id: int):
+        return cls.Customers[id]
+
+    @classmethod
+    def create_customer(cls, *args, **kwargs):
+        cls.Customers.append(Customer(*args, **kwargs))

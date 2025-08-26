@@ -2,8 +2,8 @@ from itertools import chain
 from typing import Callable, Tuple
 
 import questionary
-from ycaro_airlines.menus import menu_factory, customer_menu
-from ycaro_airlines.models.customer import Customer
+from ycaro_airlines_v2.menus import menu_factory, customer_menu
+from ycaro_airlines_v2.models.customer import Customer
 
 
 def login_action():
