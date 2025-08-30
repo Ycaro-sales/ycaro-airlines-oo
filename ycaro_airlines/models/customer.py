@@ -1,9 +1,12 @@
 from itertools import count
 from typing import Self
+
 from ycaro_airlines.models.booking import Booking
+from ycaro_airlines.models.model_database import ModelDatabase
+import pydantic
 
 
-class Customer:
+class Customer(pydantic.BaseModel):
     customer_counter = count()
     customers: dict[int, Self] = {}
 
@@ -36,3 +39,7 @@ class Customer:
 
     def spend_loyalty_points(self, amount: int):
         self.loyalty_points -= amount
+
+
+class CustomerDatabase[Customer](ModelDatabase):
+    pass
