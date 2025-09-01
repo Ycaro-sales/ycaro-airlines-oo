@@ -14,10 +14,12 @@ class BookingStatus(Enum):
 
 type customer_id = int
 
+class SpecialRequest:
 
+
+# TODO: implement base model
 class Booking:
     booking_counter = count()
-    bookings: dict[int, Self] = {}
 
     def __init__(
         self,

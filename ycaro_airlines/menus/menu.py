@@ -21,17 +21,17 @@ class UIComponent(ABC):
         self._parent = value
 
 
-class Menu(UIComponent):
-    def __init__(
-        self, title: str, options: list[UIComponent], parent: UIComponent | None
-    ):
+class Menu(UIComponent, ABC):
+    def __init_subclass__(cls) -> None:
+        cls.menu_options: list[UIComponent] = []
+        return super().__init_subclass__()
+
+    def __init__(self, title: str, parent: UIComponent | None):
         super().__init__(title, parent)
-        self.title = title
-        self.menu_options: list[UIComponent] = options
 
     def operation(self, user: None = None) -> UIComponent | None:
         choices: list[questionary.Choice] = [
-            questionary.Choice(o.title, o) for o in self.menu_options
+            questionary.Choice(option.title, option) for option in self.menu_options
         ]
 
         choices.append(questionary.Choice("Go Back", value=self.parent))
@@ -45,6 +45,7 @@ class Menu(UIComponent):
         menu_options.parent = self
 
 
-class Action(UIComponent):
+class Action(UIComponent, ABC):
+    @abstractmethod
     def operation(self, user: None = None) -> UIComponent | None:
-        return self.parent
+        pass

@@ -1,3 +1,4 @@
+from ycaro_airlines.actions.customer_actions import create_issue_action
 from ycaro_airlines.menus import menu_factory, console
 from ycaro_airlines.actions.booking_actions import (
     select_seat_action,
@@ -12,6 +13,8 @@ from ycaro_airlines.models import Customer, Booking, Flight, BookingStatus
 from typing import Callable, Tuple
 from functools import partial
 
+# TODO: Change Customer to user and check
+
 
 def customer_menu(user: Customer):
     options: list[Tuple[str, Callable]] = [
@@ -25,10 +28,15 @@ def customer_menu(user: Customer):
 
 def customer_service_menu(user: Customer):
     options: list[Tuple[str, Callable]] = [
-        ("See issues and chats", partial(flights_menu, user=user)),
-        ("Create issue", partial(bookings_menu, user=user)),
+        ("See issues", partial(issues_menu, user=user)),
+        ("Create issue", partial(create_issue_action, user=user)),
     ]
     menu_factory("Customer Service", options)()
+
+
+# TODO: implement
+def issues_menu(user: Customer):
+    pass
 
 
 def bookings_menu(user: Customer):
@@ -82,21 +90,4 @@ def flights_menu(user: Customer):
 
     Flight.print_flights_table(console)
 
-    menu_factory("Flights", options)()
-
-
-def show_loyalty_points_action(user: Customer):
-    print("not implemented!")
-
-
-def claim_rewards_action(user: Customer):
-    print("not implemented!")
-
-
-# TODO: Implement loyalty menu
-def loyalty_menu(user: Customer):
-    options: list[Tuple[str, Callable]] = [
-        ("Check points", partial(show_loyalty_points_action, user=user)),
-        ("Claim rewards", partial(claim_rewards_action, user=user)),
-    ]
     menu_factory("Flights", options)()
