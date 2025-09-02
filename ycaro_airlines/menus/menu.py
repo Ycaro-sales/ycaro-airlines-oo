@@ -1,15 +1,23 @@
 from abc import ABC, abstractmethod
+from typing import Iterable
 import questionary
+
+from ycaro_airlines.models.user import User
 
 
 # TODO: implement composite pattern
 class UIComponent(ABC):
-    def __init__(self, title: str, parent: "UIComponent | None"):
+    title: str = ""
+
+    def __init_subclass__(cls, title: str = "") -> None:
+        return super().__init_subclass__()
+
+    def __init__(self, user: User | None, parent: "UIComponent | None"):
         self._parent: UIComponent | None = parent
-        self.title = title
+        self.user: User | None = user
 
     @abstractmethod
-    def operation(self, user: None = None) -> "UIComponent | None":
+    def operation(self) -> "UIComponent | None":
         pass
 
     @property
@@ -22,30 +30,36 @@ class UIComponent(ABC):
 
 
 class Menu(UIComponent, ABC):
-    def __init_subclass__(cls) -> None:
-        cls.menu_options: list[UIComponent] = []
-        return super().__init_subclass__()
+    def __init__(
+        self,
+        user: User | None = None,
+        parent: "UIComponent | None" = None,
+        children: list[UIComponent] = [],
+    ):
+        self.children = children
+        super().__init__(user, parent)
 
-    def __init__(self, title: str, parent: UIComponent | None):
-        super().__init__(title, parent)
-
-    def operation(self, user: None = None) -> UIComponent | None:
+    def operation(self) -> UIComponent | None:
         choices: list[questionary.Choice] = [
-            questionary.Choice(option.title, option) for option in self.menu_options
+            questionary.Choice(children.title, children) for children in self.children
         ]
 
-        choices.append(questionary.Choice("Go Back", value=self.parent))
+        choices.append(questionary.Choice(title="Go Back", value=self.parent))
 
-        selection = questionary.select(self.title, choices=choices).ask()
+        selected_child = questionary.select(self.title, choices=choices).ask()
 
-        return selection
+        if selected_child == "Go Back":
+            return self.parent
 
-    def add(self, menu_options: UIComponent):
-        self.menu_options.append(menu_options)
-        menu_options.parent = self
+        return selected_child
+
+    def add(self, children: Iterable[UIComponent]):
+        for o in children:
+            self.children.append(o)
+            o.parent = self
 
 
 class Action(UIComponent, ABC):
     @abstractmethod
-    def operation(self, user: None = None) -> UIComponent | None:
+    def operation(self) -> UIComponent | None:
         pass

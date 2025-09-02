@@ -3,6 +3,8 @@ import questionary
 from typing import Tuple, Any, Callable
 from rich.console import Console
 
+from ycaro_airlines.app import clear_screen
+
 console = Console()
 
 
@@ -12,6 +14,7 @@ def menu_factory(title: str, options: list[Tuple[str, Callable]]):
 
     def menu() -> Any:
         while True:
+            clear_screen()
             selection = questionary.select(title, choices=choices).ask()
             match selection:
                 case "":

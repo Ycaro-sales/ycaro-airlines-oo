@@ -1,6 +1,5 @@
-from typing import Literal, Tuple
+from typing import Tuple
 from ycaro_airlines.models.base_model import BaseModel
-from ycaro_airlines.models.customer import Customer
 from ycaro_airlines.models.user import Roles, User
 
 
@@ -38,6 +37,15 @@ class Issue(BaseModel):
             *args,
             **kwargs,
         )
+
+    def __str__(self):
+        return f"{self.id} | {self.title} | {self.worker.username}"
+
+    @property
+    def worker(self):
+        if (worker := CustomerServiceWorker.get(self.worker_id)) is None:
+            raise ValueError(f"This issue with id:{self.id} doesn't have a worker")
+        return worker
 
 
 class IssueChat:
