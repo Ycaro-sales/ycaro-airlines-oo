@@ -1,18 +1,19 @@
-from ycaro_airlines.menus.actions.booking_actions import select_seat_action
-from ycaro_airlines.menus.menu import Action
+from ycaro_airlines.views.actions.booking_actions import select_seat_action
+from ycaro_airlines.views.menu import ActionView, UIView
 import re
 import questionary
 from ycaro_airlines.models import Flight, Booking, Customer
-from ycaro_airlines.menus import console
+from ycaro_airlines.views import console
 
 
-class BookMultFlightAction(Action):
-    def operation(self):
+class BookMultiFlightAction(ActionView):
+    title: str = "Book Multiple Flights"
+
+    def operation(self) -> UIView | None:
         if self.user is None:
             raise ValueError("User must be logged")
         if not isinstance(self.user, Customer):
             raise ValueError("User must be customer")
-            return
 
         flight_id = questionary.autocomplete(
             "Type the id of the flight you want to book:(type q to go back)",
@@ -23,7 +24,7 @@ class BookMultFlightAction(Action):
         ).ask()
 
         if flight_id == "q" or not flight_id:
-            return
+            return self.parent
 
         flight_1 = Flight.flights[int(flight_id)]
         flight_1.print_flight_table(console)
@@ -51,7 +52,7 @@ class BookMultFlightAction(Action):
         ).ask()
 
         if flight_id == "q" or not flight_id:
-            return
+            return self.parent
 
         flight_2 = Flight.flights[int(flight_id)]
 
@@ -63,7 +64,7 @@ class BookMultFlightAction(Action):
         ).ask()
 
         if not wants_to_book:
-            return
+            return self.parent
 
         passenger_name = questionary.text("Type passenger name:").ask()
         passenger_cpf = questionary.text(
@@ -74,10 +75,22 @@ class BookMultFlightAction(Action):
         ).ask()
         if not passenger_name or not passenger_cpf:
             print("Operation Cancelled")
-            return
+            return self.parent
 
-        booking_1 = Booking(flight_1, self.user.id, passenger_name, passenger_cpf)
-        booking_2 = Booking(flight_2, self.user.id, passenger_name, passenger_cpf)
+        booking_1 = Booking(
+            flight_id=flight_1.id,
+            owner_id=self.user.id,
+            passenger_name=passenger_name,
+            passenger_cpf=passenger_cpf,
+            price=flight_1.price,
+        )
+        booking_2 = Booking(
+            flight_id=flight_2.id,
+            owner_id=self.user.id,
+            passenger_name=passenger_name,
+            passenger_cpf=passenger_cpf,
+            price=flight_1.price,
+        )
 
         wants_to_spend_loyalty_points = questionary.confirm(
             f"Do you wish to spend loyalty points to get a discount?(you have: {self.user.loyalty_points} loyalty points)"
@@ -88,13 +101,14 @@ class BookMultFlightAction(Action):
                 questionary.text(
                     "how many loyalty points do you wish to spend on the booking for the first flight?(1 Loyalty Point = R$1.00)",
                     validate=lambda x: True
-                    if re.fullmatch("[0-9]+", x) and int(x) <= self.user.loyalty_points
+                    if re.fullmatch("[0-9]+", x)
+                    and int(x) <= self.user.loyalty_points.points
                     else False,
                 ).ask()
             )
 
             if loyalty_points_spent_booking_1 > booking_1.price:
-                loyalty_points_spent = int(booking_1.price)
+                loyalty_points_spent_booking_1 = int(booking_1.price)
 
             self.user.spend_loyalty_points(int(loyalty_points_spent_booking_1))
 
@@ -104,7 +118,8 @@ class BookMultFlightAction(Action):
                 questionary.text(
                     "how many loyalty points do you wish to spend on the booking for the second flight?(1 Loyalty Point = R$1.00)",
                     validate=lambda x: True
-                    if re.fullmatch("[0-9]+", x) and int(x) <= self.user.loyalty_points
+                    if re.fullmatch("[0-9]+", x)
+                    and int(x) <= self.user.loyalty_points.points
                     else False,
                 ).ask()
             )
@@ -132,3 +147,5 @@ class BookMultFlightAction(Action):
             select_seat_action(booking_2)
 
         print("Flight booked!")
+
+        return self.parent

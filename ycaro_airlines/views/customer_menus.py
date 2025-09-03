@@ -1,15 +1,14 @@
-from ycaro_airlines.menus.actions.customer_actions import create_issue_action
-from ycaro_airlines.menus import menu_factory, console
-from ycaro_airlines.menus.actions.booking_actions import (
+from ycaro_airlines.views.actions.customer_actions import create_issue_action
+from ycaro_airlines.views import menu_factory, console
+from ycaro_airlines.views.actions.booking_actions import (
     select_seat_action,
     check_in_action,
     cancel_booking_action,
     book_flight_action,
 )
 
-from ycaro_airlines.menus.actions.flight_actions import search_flight_action
+from ycaro_airlines.views.actions.flight_actions import search_flight_action
 import questionary
-from ycaro_airlines.menus.menu import Menu, UIComponent
 from ycaro_airlines.models import Customer, Booking, Flight, BookingStatus
 from typing import Callable, Tuple
 from functools import partial

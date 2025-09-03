@@ -1,8 +1,7 @@
 import re
 import questionary
-from ycaro_airlines.menus.menu import Action
+from ycaro_airlines.views import console
 from ycaro_airlines.models import Flight, Booking, Customer
-from ycaro_airlines.menus import console
 from rich.table import Table
 from rich.console import Console
 
@@ -47,7 +46,14 @@ def book_flight_action(user: User):
         return
 
     # voce quer comprar essa passagem
-    booking = Booking(flight, user.id, passenger_name, passenger_cpf)
+
+    booking = Booking(
+        flight_id=flight.id,
+        owner_id=user.id,
+        passenger_name=passenger_name,
+        passenger_cpf=passenger_cpf,
+        price=flight.price,
+    )
 
     wants_to_spend_loyalty_points = questionary.confirm(
         f"Do you wish to spend loyalty points to get a discount?(you have: {user.loyalty_points} loyalty points)"
@@ -143,8 +149,20 @@ def book_multi_flight_action(user: Customer):
         print("Operation Cancelled")
         return
 
-    booking_1 = Booking(flight_1, user.id, passenger_name, passenger_cpf)
-    booking_2 = Booking(flight_2, user.id, passenger_name, passenger_cpf)
+    booking_1 = Booking(
+        flight_id=flight_1.id,
+        owner_id=user.id,
+        passenger_name=passenger_name,
+        passenger_cpf=passenger_cpf,
+        price=flight_1.price,
+    )
+    booking_2 = Booking(
+        flight_id=flight_2.id,
+        owner_id=user.id,
+        passenger_name=passenger_name,
+        passenger_cpf=passenger_cpf,
+        price=flight_1.price,
+    )
 
     wants_to_spend_loyalty_points = questionary.confirm(
         f"Do you wish to spend loyalty points to get a discount?(you have: {user.loyalty_points} loyalty points)"

@@ -1,8 +1,8 @@
 import re
 import questionary
-from ycaro_airlines.menus.menu import Action
+from ycaro_airlines.views.menu import ActionView, UIView
 from ycaro_airlines.models import Flight, Booking, Customer
-from ycaro_airlines.menus import console
+from ycaro_airlines.views import console
 from ycaro_airlines.models.flight import SeatStatus
 
 
@@ -32,8 +32,10 @@ def select_seat_action(booking: Booking):
     booking.reserve_seat(seat)
 
 
-class BookFlightAction(Action):
-    def operation(self):
+class BookFlightAction(ActionView):
+    title: str = "Book Flight"
+
+    def operation(self) -> UIView | None:
         if self.user is None:
             return self.parent
 
@@ -49,7 +51,7 @@ class BookFlightAction(Action):
         ).ask()
 
         if flight_id == "q" or not flight_id:
-            return
+            return self.parent
 
         flight = Flight.flights[int(flight_id)]
         flight.print_flight_table(console)
@@ -59,7 +61,7 @@ class BookFlightAction(Action):
         ).ask()
 
         if not wants_to_book:
-            return
+            return self.parent
 
         passenger_name = questionary.text("Type passenger name:").ask()
         passenger_cpf = questionary.text(
@@ -70,10 +72,16 @@ class BookFlightAction(Action):
         ).ask()
         if not passenger_name or not passenger_cpf:
             print("Operation Cancelled")
-            return
+            return self.parent
 
         # voce quer comprar essa passagem
-        booking = Booking(flight, self.user.id, passenger_name, passenger_cpf)
+        booking = Booking(
+            flight_id=flight.id,
+            owner_id=self.user.id,
+            passenger_name=passenger_name,
+            passenger_cpf=passenger_cpf,
+            price=flight.price,
+        )
 
         wants_to_spend_loyalty_points = questionary.confirm(
             f"Do you wish to spend loyalty points to get a discount?(you have: {self.user.loyalty_points} loyalty points)"
@@ -105,3 +113,5 @@ class BookFlightAction(Action):
             select_seat_action(booking)
 
         print("Flight booked!")
+
+        return self.parent

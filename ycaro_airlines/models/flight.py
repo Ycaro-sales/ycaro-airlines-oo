@@ -110,7 +110,7 @@ class Flight:
     @classmethod
     def mock_flight(cls):
         """Creates mocked flights to fill flights global dictionary"""
-        timedelta_arrival = timedelta(hours=randint(1, 5))
+        timedelta_arrival = timedelta(days=randint(1, 6), hours=randint(1, 5))
         city1, city2 = sample(cities, k=2)
         price = randint(100, 400)
         mock: Flight = Flight(

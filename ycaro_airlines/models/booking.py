@@ -1,4 +1,6 @@
 from enum import Enum, auto
+
+from pydantic import Field
 from ycaro_airlines.models.base_model import BaseModel
 from ycaro_airlines.models.flight import Flight, stringify_date
 from rich.table import Table
@@ -32,10 +34,28 @@ class Booking(BaseModel):
     passenger_name: str
     passenger_cpf: str
 
-    def __init__(self, *args, **kwargs):
-        self.status = BookingStatus.booked
-        self.seat_id = None
-        super().__init__(*args, **kwargs)
+    def __init__(
+        self,
+        owner_id: int,
+        flight_id: int,
+        passenger_name: str,
+        passenger_cpf: str,
+        price: float,
+        seat_id: int | None = None,
+        *args,
+        **kwargs,
+    ):
+        super().__init__(
+            owner_id=owner_id,
+            flight_id=flight_id,
+            passenger_name=passenger_name,
+            passenger_cpf=passenger_cpf,
+            price=price,
+            seat_id=seat_id,
+            status=BookingStatus.booked,
+            *args,
+            **kwargs,
+        )
 
     def cancel_booking(self):
         self.status = BookingStatus.cancelled

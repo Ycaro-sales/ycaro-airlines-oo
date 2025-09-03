@@ -6,40 +6,48 @@ from ycaro_airlines.models.user import User
 
 
 # TODO: implement composite pattern
-class UIComponent(ABC):
+class UIView(ABC):
     title: str = ""
 
     def __init_subclass__(cls, title: str = "") -> None:
         return super().__init_subclass__()
 
-    def __init__(self, user: User | None, parent: "UIComponent | None"):
-        self._parent: UIComponent | None = parent
-        self.user: User | None = user
+    def __init__(self, user: User | None, parent: "UIView | None"):
+        self.__parent: UIView | None = parent
+        self.__user: User | None = user
 
     @abstractmethod
-    def operation(self) -> "UIComponent | None":
+    def operation(self) -> "UIView | None":
         pass
 
     @property
-    def parent(self) -> "UIComponent | None":
-        return self._parent
+    def parent(self) -> "UIView | None":
+        return self.__parent
 
     @parent.setter
-    def parent(self, value: "UIComponent"):
-        self._parent = value
+    def parent(self, value: "UIView"):
+        self.__parent = value
+
+    @property
+    def user(self):
+        return self.__user
+
+    @user.setter
+    def user(self, value: User):
+        self.__user = value
 
 
-class Menu(UIComponent, ABC):
+class MenuView(UIView, ABC):
     def __init__(
         self,
         user: User | None = None,
-        parent: "UIComponent | None" = None,
-        children: list[UIComponent] = [],
+        parent: "UIView | None" = None,
+        children: list[UIView] = [],
     ):
-        self.children = children
+        self.__children = children
         super().__init__(user, parent)
 
-    def operation(self) -> UIComponent | None:
+    def operation(self) -> UIView | None:
         choices: list[questionary.Choice] = [
             questionary.Choice(children.title, children) for children in self.children
         ]
@@ -53,13 +61,21 @@ class Menu(UIComponent, ABC):
 
         return selected_child
 
-    def add(self, children: Iterable[UIComponent]):
+    @property
+    def children(self):
+        return self.__children
+
+    @children.setter
+    def children(self, children: list[UIView]):
+        self.__children = children
+
+    def add(self, children: Iterable[UIView]):
         for o in children:
             self.children.append(o)
             o.parent = self
 
 
-class Action(UIComponent, ABC):
+class ActionView(UIView, ABC):
     @abstractmethod
-    def operation(self) -> UIComponent | None:
+    def operation(self) -> UIView | None:
         pass

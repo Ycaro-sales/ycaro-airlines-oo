@@ -1,19 +1,20 @@
 from functools import partial
 from typing import Callable, Tuple
 import questionary
-from ycaro_airlines.menus.actions.booking_actions import (
+from ycaro_airlines.views.actions.booking_actions import (
     cancel_booking_action,
     check_in_action,
     select_seat_action,
 )
-from ycaro_airlines.menus.base_menu import console, menu_factory
-from ycaro_airlines.menus.menu import Action
-from ycaro_airlines.models.user import User
+from ycaro_airlines.views import console, menu_factory
+from ycaro_airlines.views.menu import ActionView, UIView
 from ycaro_airlines.models.booking import Booking, BookingStatus
 
 
-class BookingMenu(Action):
-    def operation(self):
+class BookingMenu(ActionView):
+    title: str = "See Bookings"
+
+    def operation(self) -> UIView | None:
         if self.user is None:
             raise ValueError("User must be logged")
 
@@ -21,7 +22,7 @@ class BookingMenu(Action):
 
         if len(Booking.list_customer_bookings(self.user.id)) == 0:
             print("There are no bookings to manage!")
-            return
+            return self.parent
 
         booking_id = questionary.autocomplete(
             "Type the id of the booking you wish to manage:(type 'q' to go back)",
@@ -36,7 +37,7 @@ class BookingMenu(Action):
         ).ask()
 
         if booking_id == "q" or not booking_id:
-            return
+            return self.parent
 
         booking = Booking.get(int(booking_id))
 

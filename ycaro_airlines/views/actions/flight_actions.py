@@ -1,10 +1,11 @@
 import re
 import questionary
-from ycaro_airlines.menus.menu import Action, UIComponent
+from ycaro_airlines.views.actions.booking.book_flight_action import BookFlightAction
+from ycaro_airlines.views.menu import ActionView, UIView
 from ycaro_airlines.models import Flight, FlightQueryParams, cities
 from math import inf
 from datetime import datetime
-from ycaro_airlines.menus.base_menu import console
+from ycaro_airlines.views import console
 
 
 def str_can_be_float(string: str) -> bool:
@@ -137,8 +138,11 @@ def search_flight_action():
     Flight.print_flights_table(console=console, **flight_query_params)
 
 
-class SearchFlightAction(Action):
-    def operation(self) -> UIComponent | None:
+class SearchFlightAction(ActionView):
+    title: str = "Search Flights"
+
+    def operation(self) -> UIView | None:
+        Flight.print_flights_table(console)
         options: list[str] = [
             "price",
             "city",
@@ -151,7 +155,7 @@ class SearchFlightAction(Action):
             "How do you want to filter flights?", choices=options
         ).ask()
         if not selected:
-            return
+            return self.parent
 
         flight_query_params: FlightQueryParams = {}
 
@@ -252,3 +256,10 @@ class SearchFlightAction(Action):
                 )
 
         Flight.print_flights_table(console=console, **flight_query_params)
+        wants_to_book = questionary.confirm(
+            "Do you wish to book one of those flights?"
+        ).ask()
+        if wants_to_book:
+            BookFlightAction(self.user, parent=self).operation()
+
+        return self.parent

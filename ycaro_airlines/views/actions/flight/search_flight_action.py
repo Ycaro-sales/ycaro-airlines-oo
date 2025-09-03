@@ -1,17 +1,21 @@
 import questionary
-from ycaro_airlines.menus.actions.flight_actions import (
+from ycaro_airlines.views.actions.flight_actions import (
     str_can_be_date,
     str_can_be_float,
 )
-from ycaro_airlines.menus.menu import Action, UIComponent
+from ycaro_airlines.views.menu import ActionView, UIView
 from ycaro_airlines.models import Flight, FlightQueryParams, cities
 from math import inf
 from datetime import datetime
-from ycaro_airlines.menus.base_menu import console
+from ycaro_airlines.views import console
 
 
-class SearchFlightAction(Action):
-    def operation(self) -> UIComponent | None:
+class SearchFlightAction(ActionView):
+    title: str = "Search Flights"
+
+    def operation(self) -> UIView | None:
+        Flight.print_flights_table(console)
+
         options: list[str] = [
             "price",
             "city",
@@ -24,7 +28,7 @@ class SearchFlightAction(Action):
             "How do you want to filter flights?", choices=options
         ).ask()
         if not selected:
-            return
+            return self.parent
 
         flight_query_params: FlightQueryParams = {}
 
@@ -125,3 +129,5 @@ class SearchFlightAction(Action):
                 )
 
         Flight.print_flights_table(console=console, **flight_query_params)
+
+        return self.parent

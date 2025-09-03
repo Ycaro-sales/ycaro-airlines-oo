@@ -1,5 +1,5 @@
 import questionary
-from ycaro_airlines.menus.menu import Action, UIComponent
+from ycaro_airlines.views.menu import ActionView, UIView
 from ycaro_airlines.models.booking import Booking
 from ycaro_airlines.models.customer_service import Issue
 from ycaro_airlines.models.user import User
@@ -19,8 +19,8 @@ def create_special_requests_action(user: User, Booking: Booking):
 
 
 # TODO: implement
-class CreateIssueAction(Action):
-    def operation(self) -> UIComponent | None:
+class CreateIssueAction(ActionView):
+    def operation(self) -> UIView | None:
         if self.user is None:
             raise ValueError("Must have a logged user")
         booking = questionary.select(

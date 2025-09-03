@@ -1,6 +1,6 @@
+from typing import ClassVar
 import pydantic
 from ycaro_airlines.models.base_model import BaseModel
-from ycaro_airlines.models.booking import Booking
 
 # from ycaro_airlines.models.customer_service import Issue
 import ycaro_airlines.models.customer_service as customer_service
@@ -25,24 +25,19 @@ class LoyaltyManager(BaseModel):
 
 
 class Customer(User):
+    loyalty_points: LoyaltyManager
+
     def __init__(self, username: str, *args, **kwargs) -> None:
         role = Roles.Customer
         loyalty_points = LoyaltyManager()
 
-        try:
-            super().__init__(
-                loyalty_points=loyalty_points,
-                username=username,
-                role=role,
-                *args,
-                **kwargs,
-            )
-        except pydantic.ValidationError as exc:
-            print(repr(exc.errors()))
-
-    @property
-    def bookings(self):
-        return {k: v for k, v in Booking.bookings.items() if v.owner_id == self.id}
+        super().__init__(
+            loyalty_points=loyalty_points,
+            username=username,
+            role=role,
+            *args,
+            **kwargs,
+        )
 
     @property
     def issues(self):
@@ -50,10 +45,6 @@ class Customer(User):
             lambda x: True if x.customer_id == self.id else False,
             customer_service.Issue.list(),
         )
-
-    @property
-    def loyalty_points(self):
-        return self.loyalty_points.points
 
     def gain_loyalty_points(self, amount: int):
         self.loyalty_points.gain_points(amount)
