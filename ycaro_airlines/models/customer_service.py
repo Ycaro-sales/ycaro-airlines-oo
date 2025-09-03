@@ -1,6 +1,5 @@
-from typing import Literal, Tuple
+from typing import Tuple
 from ycaro_airlines.models.base_model import BaseModel
-from ycaro_airlines.models.customer import Customer
 from ycaro_airlines.models.user import Roles, User
 
 
@@ -28,16 +27,35 @@ class Issue(BaseModel):
     customer_id: int | None
     title: int
     description: str
+    booking_id: int
 
-    def __init__(self, title: str, description: str, customer_id: int, *args, **kwargs):
+    def __init__(
+        self,
+        title: str,
+        description: str,
+        customer_id: int,
+        booking_id: int,
+        *args,
+        **kwargs,
+    ):
         super().__init__(
             title=title,
             description=description,
             customer_id=customer_id,
             worker_id=None,
+            booking_id=booking_id,
             *args,
             **kwargs,
         )
+
+    def __str__(self):
+        return f"{self.id} | {self.title} | {self.worker.username}"
+
+    @property
+    def worker(self):
+        if (worker := CustomerServiceWorker.get(self.worker_id)) is None:
+            raise ValueError(f"This issue with id:{self.id} doesn't have a worker")
+        return worker
 
 
 class IssueChat:

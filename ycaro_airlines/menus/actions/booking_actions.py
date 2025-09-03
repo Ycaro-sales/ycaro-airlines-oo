@@ -1,14 +1,19 @@
 import re
 import questionary
+from ycaro_airlines.menus.menu import Action
 from ycaro_airlines.models import Flight, Booking, Customer
 from ycaro_airlines.menus import console
 from rich.table import Table
 from rich.console import Console
 
 from ycaro_airlines.models.flight import SeatStatus
+from ycaro_airlines.models.user import User
 
 
-def book_flight_action(user: Customer):
+def book_flight_action(user: User):
+    if not isinstance(user, Customer):
+        return
+
     flight_id = questionary.autocomplete(
         "Type the id of the flight you want to book:(type q to go back)",
         choices=[str(k) for k, _ in Flight.flights.items()],
@@ -245,7 +250,7 @@ def select_seat_action(booking: Booking):
     booking.reserve_seat(seat)
 
 
-def cancel_booking_action(user: Customer, booking: Booking):
+def cancel_booking_action(user: User, booking: Booking):
     confirmation = questionary.confirm(
         "Are you sure you want to cancel this booking?"
     ).ask()
@@ -259,7 +264,7 @@ def cancel_booking_action(user: Customer, booking: Booking):
     booking.cancel_booking()
 
 
-def check_in_action(user: Customer, booking: Booking):
+def check_in_action(user: User, booking: Booking):
     if user.id != booking.owner_id:
         print("You arent the owner of this booking!")
         return

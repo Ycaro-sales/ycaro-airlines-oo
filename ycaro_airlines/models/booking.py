@@ -1,6 +1,5 @@
 from enum import Enum, auto
-from itertools import count
-from typing import Self
+from ycaro_airlines.models.base_model import BaseModel
 from ycaro_airlines.models.flight import Flight, stringify_date
 from rich.table import Table
 from rich.console import Console
@@ -14,46 +13,56 @@ class BookingStatus(Enum):
 
 type customer_id = int
 
-class SpecialRequest:
+
+class SpecialRequestOptions(Enum):
+    accessibility = 0
+    dietary_restrictions = 1
 
 
-# TODO: implement base model
-class Booking:
-    booking_counter = count()
+class SpecialRequest(BaseModel):
+    requests: list[SpecialRequestOptions]
 
-    def __init__(
-        self,
-        flight: Flight,
-        customer_id: customer_id,
-        passenger_name: str,
-        passenger_cpf: str,
-    ):
-        self.flight = flight
-        self.id = next(self.booking_counter)
-        self.owner_id = customer_id
-        self.price = self.flight.price
+
+class Booking(BaseModel):
+    flight_id: int
+    owner_id: int
+    price: float
+    status: BookingStatus
+    seat_id: int | None
+    passenger_name: str
+    passenger_cpf: str
+
+    def __init__(self, *args, **kwargs):
         self.status = BookingStatus.booked
-        self.seat_id: int | None = None
-        self.bookings[self.id] = self
-        self.passenger_name = passenger_name
-        self.passenger_cpf = passenger_cpf
+        self.seat_id = None
+        super().__init__(*args, **kwargs)
 
     def cancel_booking(self):
         self.status = BookingStatus.cancelled
+        if self.flight is None:
+            raise ValueError("Booking must have a flight")
 
-        if self.seat_id:
+        if self.seat_id is not None:
             self.flight.open_seat(self.seat_id)
 
     @property
     def seat(self):
-        return self.flight.seats[self.seat_id] if self.seat_id else None
+        if self.flight is not None:
+            return self.flight.seats[self.seat_id] if self.seat_id else None
+        return None
+
+    @property
+    def flight(self):
+        if (flight := Flight.get_flight(self.flight_id)) is None:
+            raise ValueError("Booking must have a flight")
+        return flight
 
     @classmethod
-    def list_bookings(cls, customer_id: customer_id):
+    def list_customer_bookings(cls, customer_id: customer_id):
         return list(
             filter(
                 lambda x: True if x.owner_id == customer_id else False,
-                cls.bookings.values(),
+                cls.list(),
             )
         )
 
@@ -93,7 +102,7 @@ class Booking:
         table.add_column("Status", justify="right", no_wrap=True)
         table.add_column("Seat", justify="right", no_wrap=True)
 
-        for i in cls.list_bookings(customer_id):
+        for i in cls.list_customer_bookings(customer_id):
             table.add_row(
                 f"{i.id}",
                 f"{i.flight.id}",
@@ -104,8 +113,28 @@ class Booking:
                 f"{i.status.name}",
                 f"{i.seat_id}" if i.seat_id else "N/A",
             )
-
         console.print(table)
 
     def print_booking_table(self, console: Console):
-        pass
+        table = Table(title="Bookings")
+        table.add_column("Booking")
+        table.add_column("Flight")
+        table.add_column("From", justify="right", no_wrap=True)
+        table.add_column("Departure", justify="right", no_wrap=True)
+        table.add_column("Destination")
+        table.add_column("Arrival", justify="right", no_wrap=True)
+        table.add_column("Status", justify="right", no_wrap=True)
+        table.add_column("Seat", justify="right", no_wrap=True)
+
+        table.add_row(
+            f"{self.id}",
+            f"{self.flight.id}",
+            f"{self.flight.From}",
+            f"{stringify_date(self.flight.departure)}",
+            f"{self.flight.To}",
+            f"{stringify_date(self.flight.arrival)}",
+            f"{self.status.name}",
+            f"{self.seat_id}" if self.seat_id else "N/A",
+        )
+
+        console.print(table)

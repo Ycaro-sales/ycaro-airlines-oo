@@ -1,22 +1,25 @@
-from ycaro_airlines.actions.customer_actions import create_issue_action
+from ycaro_airlines.menus.actions.customer_actions import create_issue_action
 from ycaro_airlines.menus import menu_factory, console
-from ycaro_airlines.actions.booking_actions import (
+from ycaro_airlines.menus.actions.booking_actions import (
     select_seat_action,
     check_in_action,
     cancel_booking_action,
     book_flight_action,
 )
 
-from ycaro_airlines.actions.flight_actions import search_flight_action
+from ycaro_airlines.menus.actions.flight_actions import search_flight_action
 import questionary
+from ycaro_airlines.menus.menu import Menu, UIComponent
 from ycaro_airlines.models import Customer, Booking, Flight, BookingStatus
 from typing import Callable, Tuple
 from functools import partial
 
+from ycaro_airlines.models.user import User
+
 # TODO: Change Customer to user and check
 
 
-def customer_menu(user: Customer):
+def customer_menu(user: User):
     options: list[Tuple[str, Callable]] = [
         ("Browse Flights", partial(flights_menu, user=user)),
         ("My Bookings", partial(bookings_menu, user=user)),
@@ -26,7 +29,7 @@ def customer_menu(user: Customer):
     menu_factory("Customer Menu", options)()
 
 
-def customer_service_menu(user: Customer):
+def customer_service_menu(user: User):
     options: list[Tuple[str, Callable]] = [
         ("See issues", partial(issues_menu, user=user)),
         ("Create issue", partial(create_issue_action, user=user)),
@@ -35,23 +38,24 @@ def customer_service_menu(user: Customer):
 
 
 # TODO: implement
-def issues_menu(user: Customer):
+def issues_menu(user: User):
     pass
 
 
-def bookings_menu(user: Customer):
+def bookings_menu(user: User):
     Booking.print_bookings_table(user.id, console)
 
-    if len(Booking.list_bookings(user.id)) == 0:
+    if len(Booking.list_customer_bookings(user.id)) == 0:
         print("There are no bookings to manage!")
         return
 
     booking_id = questionary.autocomplete(
         "Type the id of the booking you wish to manage:(type 'q' to go back)",
-        choices=[str(i.id) for i in Booking.list_bookings(user.id)],
+        choices=[str(i.id) for i in Booking.list_customer_bookings(user.id)],
         validate=lambda x: (
             True
-            if x in {str(i.id) for i in Booking.list_bookings(user.id)} or x == "q"
+            if x in {str(i.id) for i in Booking.list_customer_bookings(user.id)}
+            or x == "q"
             else False
         ),
     ).ask()
@@ -59,7 +63,11 @@ def bookings_menu(user: Customer):
     if booking_id == "q" or not booking_id:
         return
 
-    booking = Booking.bookings[int(booking_id)]
+    booking = Booking.get(int(booking_id))
+
+    if booking is None:
+        raise ValueError("Booking Id must be valid")
+
     booking.print_booking_table(console)
 
     options: list[Tuple[str, Callable]] = [

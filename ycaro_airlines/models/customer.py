@@ -1,42 +1,62 @@
+import pydantic
+from ycaro_airlines.models.base_model import BaseModel
 from ycaro_airlines.models.booking import Booking
-from ycaro_airlines.models.customer_service import Issue
-from ycaro_airlines.models.model_database import ModelRepository
+
+# from ycaro_airlines.models.customer_service import Issue
+import ycaro_airlines.models.customer_service as customer_service
 from ycaro_airlines.models.user import Roles, User
+
+
+class LoyaltyManager(BaseModel):
+    points: int
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(points=0, *args, **kwargs)
+
+    def gain_points(self, amount: int):
+        if amount < 0:
+            raise ValueError("Loyalty points gained amount must not be negative")
+        self.points += amount
+
+    def spend_points(self, amount: int):
+        if amount >= 0:
+            raise ValueError("Loyalty points gained amount must not be negative")
+        self.points -= amount
 
 
 class Customer(User):
     def __init__(self, username: str, *args, **kwargs) -> None:
         role = Roles.Customer
-        self.loyalty_points = 0
+        loyalty_points = LoyaltyManager()
 
-        super().__init__(username=username, role=role, *args, **kwargs)
+        try:
+            super().__init__(
+                loyalty_points=loyalty_points,
+                username=username,
+                role=role,
+                *args,
+                **kwargs,
+            )
+        except pydantic.ValidationError as exc:
+            print(repr(exc.errors()))
 
     @property
     def bookings(self):
         return {k: v for k, v in Booking.bookings.items() if v.owner_id == self.id}
 
-    @classmethod
-    def get_by_username(cls, customer_username: str):
-        for v in cls.repository.list():
-            if v is None:
-                continue
-
-            if v.username == customer_username:
-                return v
-
-        return None
-
     @property
     def issues(self):
         return filter(
-            lambda x: True if x.customer_id == self.id else False, Issue.list()
+            lambda x: True if x.customer_id == self.id else False,
+            customer_service.Issue.list(),
         )
 
+    @property
+    def loyalty_points(self):
+        return self.loyalty_points.points
+
     def gain_loyalty_points(self, amount: int):
-        self.loyalty_points += amount
+        self.loyalty_points.gain_points(amount)
 
     def spend_loyalty_points(self, amount: int):
-        self.loyalty_points -= amount
-
-
-CustomerRepository = ModelRepository[Customer]()
+        self.loyalty_points.spend_points(amount)

@@ -8,32 +8,27 @@ T = TypeVar("T", bound=pydantic.BaseModel)
 
 
 class ModelRepository(abc.ABC, Generic[T]):
-    def __init_subclass__(cls) -> None:
-        cls.id_counter = count()
-        cls.data: dict[int, T] = {}
+    def __init__(self) -> None:
+        self.id_counter = count()
+        self.data: dict[int, T] = {}
         return super().__init_subclass__()
 
-    @classmethod
-    def get(cls, id: int) -> T | None:
-        return cls.data.get(id)
+    def get(self, id: int) -> T | None:
+        return self.data.get(id)
 
-    @classmethod
-    def list(cls):
-        return list(cls.data.values())
+    def list(self):
+        return list(self.data.values())
 
-    @classmethod
-    def save(cls, item: T) -> int:
-        item_id = next(cls.id_counter)
-        cls.data[item_id] = item
+    def save(self, item: T) -> int:
+        item_id = next(self.id_counter)
+        self.data[item_id] = item
         return item_id
 
-    @classmethod
-    def remove(cls, id: int) -> T | None:
-        return cls.data.pop(id)
+    def remove(self, id: int) -> T | None:
+        return self.data.pop(id)
 
-    @classmethod
-    def update(cls, id: int, **kwargs) -> T | None:
-        if (item := cls.data.get(id)) is None:
+    def update(self, id: int, **kwargs) -> T | None:
+        if (item := self.data.get(id)) is None:
             return None
 
         model_attribute_dump = item.model_dump()
@@ -46,6 +41,6 @@ class ModelRepository(abc.ABC, Generic[T]):
             print(e)
             return None
 
-        cls.data[id] = updated_model
+        self.data[id] = updated_model
 
         return updated_model
